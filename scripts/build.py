@@ -37,6 +37,7 @@ build("approved", [S, ("Reviewed", "done"), ("Approved", "done")])
 for n in range(1, 10):
     build(f"address-{n}", [S, ("Reviewed", "done"), (f"{n} to address", "warn")])
 build("address-9plus", [S, ("Reviewed", "done"), ("9+ to address", "warn")])
+build("commented", [S, ("Reviewed", "done"), ("Commented", "warn")])
 build("head-moved", [S, ("Head moved", "skip"), ("Next pass", "dashed")])
 build("merged-first", [S, ("Merged first", "skip")])
 build("closed-first", [S, ("Closed first", "skip")])
