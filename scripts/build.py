@@ -11,7 +11,7 @@ def tw(s, size=12):
         elif ch.isdigit(): w += 0.56
         else: w += 0.54
     return w * size
-H, PADX, GAP, ARW, OWL = 24, 10, 6, 14, 19
+H, PADX, GAP, ARW, OWL = 24, 10, 6, 14, 20
 def chip(x, label, color, dashed=False):
     w = tw(label) + 2 * PADX
     dash = ' stroke-dasharray="3 2"' if dashed else ""
