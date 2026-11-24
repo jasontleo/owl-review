@@ -12,24 +12,36 @@ def tw(s, size=12):
         else: w += 0.54
     return w * size
 H, PADX, GAP, ARW, OWL = 24, 10, 6, 14, 20
-def chip(x, label, color, dashed=False):
+def chip(x, label, color, dashed=False, running=False):
     w = tw(label) + 2 * PADX
+    rw, rh, r = w - 1.5, H - 5.5, 9.25
+    geo = f'x="{x+0.75:.2f}" y="2.75" width="{rw:.2f}" height="{rh:.2f}" rx="{r}" fill="none" stroke="{color}"'
+    text = f'<text x="{x+w/2:.2f}" y="{H/2+4.2:.2f}" text-anchor="middle" class="t">{label}</text>'
+    if running:
+        # A bright segment circles a dim border; the dash offset runs one perimeter per cycle.
+        per = 2 * (rw + rh) - 8 * r + 6.2832 * r
+        seg = per * 0.3
+        return (f'<rect {geo} stroke-width="1.5" stroke-opacity="0.35"/>'
+                f'<rect {geo} stroke-width="2" stroke-linecap="round" stroke-dasharray="{seg:.2f} {per-seg:.2f}" class="run"/>'
+                f'<style>@keyframes run{{from{{stroke-dashoffset:{per:.2f}}}to{{stroke-dashoffset:0}}}}</style>'
+                + text), w
     dash = ' stroke-dasharray="3 2"' if dashed else ""
-    return (f'<rect x="{x+0.75:.2f}" y="2.75" width="{w-1.5:.2f}" height="{H-5.5:.2f}" rx="9.25" fill="none" stroke="{color}" stroke-width="1.5"{dash}/>'
-            f'<text x="{x+w/2:.2f}" y="{H/2+4.2:.2f}" text-anchor="middle" class="t">{label}</text>'), w
+    return f'<rect {geo} stroke-width="1.5"{dash}/>' + text, w
 def arrow(x):
     y = H / 2
     return f'<path d="M{x+2} {y}h{ARW-6}m-3.5 -3.5l3.5 3.5l-3.5 3.5" fill="none" stroke="#8c959f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>', ARW
+RUN_CSS = ('.run{animation:run 1.6s linear infinite}'
+           '@media (prefers-reduced-motion:reduce){.run{animation:none}}')
 def build(name, steps):
     parts, x = [], 0
     parts.append(f'<text x="0" y="{H/2+6.5:.2f}" font-size="{OWL}">🦉</text>'); x = OWL + 6
     for i, (label, kind) in enumerate(steps):
         if i: s, w = arrow(x); parts.append(s); x += w + 2
-        s, w = chip(x, label, C["pending" if kind == "dashed" else kind], kind == "dashed"); parts.append(s); x += w + 2
+        s, w = chip(x, label, C["pending" if kind == "dashed" else kind], kind == "dashed", kind == "active"); parts.append(s); x += w + 2
     W = int(x + 1)
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" role="img" aria-label="{" → ".join(l for l, _ in steps)}">'
            '<style>.t{font:500 12px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;fill:#1f2328}'
-           '@media (prefers-color-scheme:dark){.t{fill:#e6edf3}}</style>' + "".join(parts) + '</svg>')
+           '@media (prefers-color-scheme:dark){.t{fill:#e6edf3}}' + (RUN_CSS if 'class="run"' in "".join(parts) else "") + '</style>' + "".join(parts) + '</svg>')
     (OUT / f"{name}.svg").write_text(svg)
 S = ("Start", "done")
 build("reviewing", [S, ("Reviewing", "active"), ("Verdict", "dashed")])
